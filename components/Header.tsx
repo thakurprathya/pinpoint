@@ -16,7 +16,7 @@ const Header = () => {
                     <SignedOut>
                         <SignInButton mode="modal">
                             <button className="inline-flex items-center bg-[#F0BB78] border-0 py-2 px-4 text-[#543A14] focus:outline-none hover:bg-[#d4a469] rounded-lg">
-                                Sign In
+                                Sign in
                             </button>
                         </SignInButton>
                     </SignedOut>

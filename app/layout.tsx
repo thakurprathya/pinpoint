@@ -60,7 +60,7 @@ const clerkTheme = {
       socialButtonsProviderIcon: "[&_svg]:fill-[#2D1810]",
 
       // User button and dropdown
-      userButtonPopoverCard: "!bg-[#2D1810] border border-[#F0BB78] shadow-lg",
+      userButtonPopoverCard: "!bg-[#2D1810] border border-[#543A14] shadow-lg",
       userButtonPopover: "!bg-[#2D1810]",
       userButtonPopoverActions: "!bg-[#2D1810] text-[#F0BB78]",
       userButtonPopoverActionButton: "hover:!bg-[#543A14] text-[#F0BB78]",
@@ -83,7 +83,7 @@ const clerkTheme = {
       signOutButton: "text-[#F0BB78] hover:!bg-[#543A14]",
       identityPreviewText: "text-[#F0BB78]",
       identityPreviewEditButton: "text-[#F0BB78]",
-      alternativeMethodsBlockButton: "text-[#F0BB78]",
+      alternativeMethodsBlockButton: "bg-white hover:bg-[#F0BB78] text-[#F0BB78]",
       footerActionLink: "[&_svg]:fill-[#F0BB78]",
       logoBox: "text-[#F0BB78]",
 
@@ -95,6 +95,11 @@ const clerkTheme = {
       // Preview styling
       userPreviewAvatarBox: "border-2 border-[#F0BB78]",
       userPreviewAvatarImage: "rounded-full",
+
+      // Badge elements
+      badge: "bg-[#FFF0DC] text-[#2D1810] rounded",
+      badgePrimary: "bg-[#FFF0DC] text-[#2D1810]",
+      badgeSecondary: "bg-[#FFF0DC] text-[#2D1810] opacity-80",
   },
   variables: {
       colorBackground: "#2D1810",
