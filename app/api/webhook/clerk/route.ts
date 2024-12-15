@@ -18,7 +18,6 @@ export async function POST(req: Request) {
 
     const payload = await req.json()
     const body = JSON.stringify(payload);
-
     const wh = new Webhook(WEBHOOK_SECRET);
 
     try {
@@ -71,4 +70,8 @@ export async function POST(req: Request) {
         console.log(err)
         return new Response('Error occured', { status: 400 })
     }
+}
+
+export async function GET() {
+    return Response.json({ message: 'Testing Endpoint' })
 }
