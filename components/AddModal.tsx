@@ -1,15 +1,15 @@
 import { use, useState } from "react"
 
 interface Props {
-    suggestions: string[]
-    setSuggestions: React.Dispatch<React.SetStateAction<string[]>>
+    tags: string[]
+    setTags: React.Dispatch<React.SetStateAction<string[]>>
     setAddModal: React.Dispatch<React.SetStateAction<boolean>>
 };
 
-const AddModal = ({ suggestions, setSuggestions, setAddModal } : Props) => {
+const AddModal = ({ tags, setTags, setAddModal } : Props) => {
     const [isModalHovered, setIsModalHovered] = useState(false);
     const [isFocused, setIsFocused] = useState<boolean>(false);
-    const [tags, setTags] = useState<string[]>([]);
+    const [linkTags, setLinkTags] = useState<string[]>([]);
     const [link, setLink] = useState<string>('');
     const [tag, setTag] = useState<string>('');
     const [title, setTitle] = useState<string>('');
@@ -20,7 +20,7 @@ const AddModal = ({ suggestions, setSuggestions, setAddModal } : Props) => {
         setLink('');
         setTitle('');
         setTag('');
-        setTags([]);
+        setLinkTags([]);
     }
 
     const capitalize = (str: string): string => {
@@ -40,9 +40,9 @@ const AddModal = ({ suggestions, setSuggestions, setAddModal } : Props) => {
             alert('Link is required!!!');
             return;
         }
-        if(tags.length === 0) setTags(["General"]);
+        if(linkTags.length === 0) setLinkTags(["General"]);
 
-        setSuggestions([...suggestions, ...tags]);
+        setTags([...tags, ...linkTags]);
 
         setDefaultStates();
         setAddModal(false);
@@ -51,7 +51,7 @@ const AddModal = ({ suggestions, setSuggestions, setAddModal } : Props) => {
     return (
         <div 
         onClick={() => !isModalHovered && setAddModal(false)}
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+        className="z-20 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
         >
             {/* Input Component */}
             <div
@@ -85,23 +85,23 @@ const AddModal = ({ suggestions, setSuggestions, setAddModal } : Props) => {
                         onBlur={(e) => setTimeout(() => setIsFocused(false), 200)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && tag.trim()) {
-                                if(!tags.includes(tag.trim())) setTags([...tags, tag.trim()]);
+                                if(!linkTags.includes(tag.trim())) setLinkTags([...linkTags, tag.trim()]);
                                 setTag('');
                                 (e.target as HTMLInputElement).blur();
                                 setIsFocused(false);
                             }
                         }}
                     />
-                    {isFocused && suggestions.length > 0 && (
-                        <div className={`absolute z-20 w-full bg-[#543A14] mt-1 rounded-md max-h-[10rem] overflow-y-auto ${suggestions.length > 0 ? 'border-[#F0BB78] border' : ''}`}>
-                            {suggestions
+                    {isFocused && tags.length > 0 && (
+                        <div className={`absolute z-30 w-full bg-[#543A14] mt-1 rounded-md max-h-[10rem] overflow-y-auto ${tags.length > 0 ? 'border-[#F0BB78] border' : ''}`}>
+                            {tags
                                 .filter(suggestion => tag === '' || suggestion.toLowerCase().includes(tag.toLowerCase()))
                                 .map((suggestion, index) => (
                                     <div 
-                                        key={index+suggestion}
+                                        key={index+suggestion+'.'}
                                         className="p-2 hover:bg-[#644824] cursor-pointer"
                                         onClick={() => {
-                                            if(!tags.includes(suggestion)) setTags([...tags, suggestion]);
+                                            if(!linkTags.includes(suggestion)) setLinkTags([...linkTags, suggestion]);
                                             setTag('');
                                             setIsFocused(false);
                                         }}
@@ -126,13 +126,13 @@ const AddModal = ({ suggestions, setSuggestions, setAddModal } : Props) => {
                     </div>
                     <div className="w-full max-w-[300px] flex flex-wrap gap-2">
                         <p className="text-[#F0BB78]">Tags:</p>
-                        {tags.length > 0 && tags.map((tag, index) =>
+                        {linkTags.length > 0 && linkTags.map((tag, index) =>
                             <div 
-                            key={index+tag}
+                            key={index+tag+'*'}
                             className="text-sm p-1 rounded-md bg-[#F0BB78] text-[#543A14] flex items-center gap-2"
                             >
                                 <p>{capitalize(tag)}</p>
-                                <button onClick={() => setTags(tags.filter(t => t !== tag))}>
+                                <button onClick={() => setLinkTags(linkTags.filter(t => t !== tag))}>
                                     <svg  viewBox="0 0 24 24"  fill="currentColor" className="w-5">
                                         <path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12z" />
                                     </svg>
