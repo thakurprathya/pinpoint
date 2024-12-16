@@ -29,9 +29,11 @@ interface Props {
     bookmarks: BookmarkMap | null
     setBookmarks: React.Dispatch<React.SetStateAction<BookmarkMap | null>>
     isSignedIn: boolean
+    setAddModal: React.Dispatch<React.SetStateAction<boolean>>
+    setBookmarkToUpdate: React.Dispatch<React.SetStateAction<BookmarkType | null>>;
 };
 
-const BookmarkTable = ({ tags, setTags, bookmarks, setBookmarks, isSignedIn } : Props) => {
+const BookmarkTable = ({ tags, setTags, bookmarks, setBookmarks, isSignedIn, setAddModal, setBookmarkToUpdate } : Props) => {
     const [activeTag, setActiveTag] = useState<String>('');
 
     const capitalize = (str: string): string => {
@@ -42,7 +44,8 @@ const BookmarkTable = ({ tags, setTags, bookmarks, setBookmarks, isSignedIn } : 
     };
 
     const HandleEditBookmark = async (bookmark : BookmarkType) => {
-        
+        setBookmarkToUpdate(bookmark);
+        setAddModal(true);
     }
     
     const HandleDeleteBookmark = async (bookmark : BookmarkType) => {

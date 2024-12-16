@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { getEncryptedItem, setEncryptedItem } from "../lib/encryption"
 
 interface Bookmark {
@@ -6,7 +6,11 @@ interface Bookmark {
     user: string;
     link: string;
     title: string;
+    description?: string;
+    favicon?: string;
     tags: string[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 interface BookmarkMap {
@@ -19,9 +23,10 @@ interface Props {
     bookmarks: BookmarkMap | null
     setBookmarks: React.Dispatch<React.SetStateAction<BookmarkMap | null>>
     setAddModal: React.Dispatch<React.SetStateAction<boolean>>
+    bookmarkToUpdate: Bookmark | null;
 };
 
-const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Props) => {
+const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, bookmarkToUpdate } : Props) => {
     const [isModalHovered, setIsModalHovered] = useState(false);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const [linkTags, setLinkTags] = useState<string[]>([]);
@@ -58,7 +63,14 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } 
         setIsFocused(false);
     };
 
-    const HandleModalSave = async () =>{
+    const ShouldRemoveTag = (tag: string, updatedBookmarks: BookmarkMap) => {
+        // Check if tag exists in bookmarks
+        if (!updatedBookmarks[tag]) return true;
+        // Check if tag has any bookmarks
+        return updatedBookmarks[tag].length === 0;
+    };
+
+    const HandleModalSave = async () => {
         if(link === ""){
             alert('Link is required!!!');
             return;
@@ -70,50 +82,95 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } 
 
         const userObj = getEncryptedItem('user');
 
-        const response = await fetch('/api/bookmarks/createBookmark', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: userObj?._id,
-                link,
-                title,
-                tags: linkTags
-            })
-        });
+        try {
+            const endpoint = bookmarkToUpdate 
+                ? '/api/bookmarks/updateBookmark'
+                : '/api/bookmarks/createBookmark';
+                
+            const method = bookmarkToUpdate ? 'PUT' : 'POST';
 
-        if (!response.ok) {
-            const error = await response.text();
-            alert(error);
-            return;
+            const response = await fetch(endpoint, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userObj?._id,
+                    bookmarkId: bookmarkToUpdate?._id,
+                    link,
+                    title,
+                    tags: linkTags
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                alert(error);
+                return;
+            }
+
+            const bookmark = await response.json();
+            
+            // Update bookmarks state
+            const updatedBookmarks = { ...(bookmarks || {}) };
+            const tagsToRemove: string[] = [];
+            
+            // If updating, remove old bookmark and check for unused tags
+            if (bookmarkToUpdate) {
+                bookmarkToUpdate.tags.forEach(tag => {
+                    if (updatedBookmarks[tag]) {
+                        updatedBookmarks[tag] = updatedBookmarks[tag].filter(
+                            b => b._id !== bookmarkToUpdate._id
+                        );
+                        // Check if this tag should be removed after filtering
+                        if (ShouldRemoveTag(tag, updatedBookmarks)) {
+                            delete updatedBookmarks[tag];
+                            tagsToRemove.push(tag);
+                        }
+                    }
+                });
+            }
+
+            // Add new/updated bookmark
+            linkTags.forEach(tag => {
+                if (!updatedBookmarks[tag]) {
+                    updatedBookmarks[tag] = [];
+                }
+                updatedBookmarks[tag].push({
+                    ...bookmark,
+                    tags: linkTags
+                });
+            });
+
+            // Update both states
+            let updatedTags = tags.filter(t => !tagsToRemove.includes(t));
+            
+            // Add any new tags
+            const newTags = linkTags.filter(tag => !updatedTags.includes(tag));
+            updatedTags = [...updatedTags, ...newTags];
+
+            setBookmarks(updatedBookmarks);
+            setEncryptedItem('bookmarks', updatedBookmarks);
+            
+            setTags(updatedTags);
+            setEncryptedItem('tags', updatedTags);
+            
+            setDefaultStates();
+            setAddModal(false);
+        } catch (err) {
+            console.error('Error saving bookmark:', err);
+            alert('Failed to save bookmark');
         }
-
-        // First, filter out any duplicate tags
-        const newTags = linkTags.filter(tag => !tags.includes(tag));
-        const updatedTags = [...tags, ...newTags];
-        setTags(updatedTags);
-        setEncryptedItem('tags', updatedTags);
-
-        const bookmark = await response.json();
-        const newBookmark = {
-            ...bookmark,
-            tags: [...linkTags]
-        };
-
-        // Update bookmarks state
-        const updatedBookmarks = bookmarks ? { ...bookmarks } : {};
-        linkTags.forEach(tag => {
-            if (!updatedBookmarks[tag]) updatedBookmarks[tag] = [];
-            updatedBookmarks[tag].push(newBookmark);
-        });
-        
-        setBookmarks(updatedBookmarks);
-        setEncryptedItem('bookmarks', updatedBookmarks);
-
-        setDefaultStates();
-        setAddModal(false);
     }
+
+    useEffect(() => {
+        if (bookmarkToUpdate) {
+            setLink(bookmarkToUpdate.link);
+            setTitle(bookmarkToUpdate.title);
+            setLinkTags(bookmarkToUpdate.tags);
+        }
+    }, [bookmarkToUpdate]);
+
 
     return (
         <div 
@@ -126,7 +183,9 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } 
             onMouseLeave={() => setIsModalHovered(false)} 
             className="p-5 md:p-7 rounded-lg bg-[#2D1810] flex flex-col gap-4"
             >
-                <h2 className="text-[#F0BB78] text-lg md:text-2xl">Add Bookmark</h2>
+                <h2 className="text-[#F0BB78] text-lg md:text-2xl">
+                    {bookmarkToUpdate ? 'Update Bookmark' : 'Add Bookmark'}
+                </h2>
                 <input
                     type="text"
                     className="bg-[#543A14] outline-none rounded-md p-2 px-4 text-sm md:text-md w-[300px]"
@@ -215,4 +274,4 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } 
     )
 }
 
-export default AddUpdateModal
+export default AddUpdateModal;

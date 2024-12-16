@@ -62,8 +62,11 @@ const Home = () => {
     const [tags, setTags] = useState<string[]>([]);
     const [bookmarks, setBookmarks] = useState<BookmarkMap | null>(null);
 
+    const [bookmarkToUpdate, setBookmarkToUpdate] = useState<BookmarkType | null>(null);
+
     const HandleAddBookmark = () =>{
         if(!isSignedIn) return openSignIn();
+        setBookmarkToUpdate(null);
         setAddModal(true);
     }
 
@@ -188,7 +191,7 @@ const Home = () => {
 
     return (
         <div className="h-[100vh] flex flex-col items-center p-5 md:p-10">
-            {addModal ? <AddUpdateModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal}/> : <></>}
+            {addModal ? <AddUpdateModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal} bookmarkToUpdate={bookmarkToUpdate}/> : <></>}
             <div className="flex flex-col items-center gap-2 mt-[7rem]">
                 <h1 className="text-[#F0BB78] font-semibold text-2xl md:text-3xl text-center">Centralized Link Management</h1>
                 <p className="text-left w-[90%] text-[12px] md:text-[14px] md:w-auto">Organize and maintain your bookmarks efficiently with easy-to-use tools for saving, categorizing, and accessing your favorite websites.</p>
@@ -207,7 +210,7 @@ const Home = () => {
                     <p className={`text-[12px] md:text-lg ${isBtnHovered ? 'text-[#131010]' : 'text-[#F0BB78]'} transition-colors duration-200`}>Add Bookmark</p>
                 </button>
 
-                <BookmarkTable tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} isSignedIn={isSignedIn}/>
+                <BookmarkTable tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} isSignedIn={isSignedIn} setAddModal={setAddModal} setBookmarkToUpdate={setBookmarkToUpdate}/>
             </div>
         </div>
     )
