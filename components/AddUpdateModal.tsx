@@ -21,7 +21,7 @@ interface Props {
     setAddModal: React.Dispatch<React.SetStateAction<boolean>>
 };
 
-const AddModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Props) => {
+const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Props) => {
     const [isModalHovered, setIsModalHovered] = useState(false);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const [linkTags, setLinkTags] = useState<string[]>([]);
@@ -166,11 +166,7 @@ const AddModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Prop
                                     <div 
                                         key={index+suggestion+'.'}
                                         className="p-2 hover:bg-[#644824] cursor-pointer"
-                                        onClick={() => {
-                                            if(!linkTags.includes(suggestion)) setLinkTags([...linkTags, suggestion]);
-                                            setTag('');
-                                            setIsFocused(false);
-                                        }}
+                                        onClick={() => HandleAddTag(suggestion)}
                                     >
                                         {capitalize(suggestion)}
                                     </div>
@@ -219,4 +215,4 @@ const AddModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Prop
     )
 }
 
-export default AddModal
+export default AddUpdateModal

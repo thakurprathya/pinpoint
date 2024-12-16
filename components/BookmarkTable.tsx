@@ -47,61 +47,74 @@ const BookmarkTable = ({ tags, setTags, bookmarks, setBookmarks, isSignedIn } : 
     
     const HandleDeleteBookmark = async (bookmark : BookmarkType) => {
         const userObj = getEncryptedItem('user');
-
-        // Add confirmation dialog
+        
         const isConfirmed = window.confirm('Are you sure you want to delete this bookmark?');
         if (!isConfirmed) return;
-
-        const response = await fetch('/api/bookmarks/deleteBookmark', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: userObj?._id,
-                bookmarkId: bookmark._id
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.text();
-            alert(error);
-            return;
-        }
-
-        // Update bookmarks and tags state
-        const updatedBookmarks: BookmarkMap = { ...bookmarks };
-        const tagsToRemove: string[] = [];
-        
-        bookmark.tags.forEach((tag) => {
-            updatedBookmarks[tag] = updatedBookmarks[tag].filter(b => b.link !== bookmark.link);
-            if (updatedBookmarks[tag].length === 0) {
-                delete updatedBookmarks[tag];
-                tagsToRemove.push(tag);
+    
+        try {
+            const response = await fetch('/api/bookmarks/deleteBookmark', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userObj?._id,
+                    bookmarkId: bookmark._id
+                })
+            });
+    
+            if (!response.ok) {
+                const error = await response.text();
+                alert(error);
+                return;
             }
-        });
-
-        setTags(prevTags => {
-            const newTags = prevTags.filter(t => !tagsToRemove.includes(t));
+    
+            // Batch state updates
+            const updatedBookmarks = { ...bookmarks };
+            const tagsToRemove: string[] = [];
+            
+            bookmark.tags.forEach((tag) => {
+                if (updatedBookmarks[tag]) {
+                    updatedBookmarks[tag] = updatedBookmarks[tag].filter(b => b.link !== bookmark.link);
+                    if (updatedBookmarks[tag].length === 0) {
+                        delete updatedBookmarks[tag];
+                        tagsToRemove.push(tag);
+                    }
+                }
+            });
+    
+            // Update both states together
+            const newTags = tags.filter(t => !tagsToRemove.includes(t));
+            
+            setBookmarks(updatedBookmarks);
+            setEncryptedItem('bookmarks', updatedBookmarks);
+            
+            setTags(newTags);
             setEncryptedItem('tags', newTags);
+    
             if (activeTag && tagsToRemove.includes(activeTag.toString())) {
-                setActiveTag(newTags.length > 0 ? newTags[0] : '');
-                setEncryptedItem('activeTag', newTags.length > 0 ? newTags[0] : '');
+                const newActiveTag = newTags.length > 0 ? newTags[0] : '';
+                setActiveTag(newActiveTag);
+                setEncryptedItem('activeTag', newActiveTag);
             }
-            return newTags;
-        });
-
-        setBookmarks(updatedBookmarks);
-        setEncryptedItem('bookmarks', updatedBookmarks);
+    
+        } catch (err) {
+            console.error('Error deleting bookmark:', err);
+            alert('Failed to delete bookmark');
+        }
     }
 
     useEffect(() => {
-        const sessionActiveTag = getEncryptedItem('activeTag');
+        // Only update if tags exist and bookmarks have changed
         if (tags.length > 0) {
-            if (sessionActiveTag && tags.includes(sessionActiveTag)) {
-                setActiveTag(sessionActiveTag);
-            } else {
-                setActiveTag(tags[0]);
+            const sessionActiveTag = getEncryptedItem('activeTag');
+            const newActiveTag = sessionActiveTag && tags.includes(sessionActiveTag) 
+                ? sessionActiveTag 
+                : tags[0];
+                
+            if (activeTag !== newActiveTag) {
+                setActiveTag(newActiveTag);
+                setEncryptedItem('activeTag', newActiveTag);
             }
         }
     }, [tags, bookmarks]);

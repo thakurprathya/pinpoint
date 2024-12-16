@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { useUser, useClerk } from "@clerk/nextjs"
 
-import AddModal from "../components/AddModal";
+import AddUpdateModal from "../components/AddUpdateModal";
 import BookmarkTable from "../components/BookmarkTable";
 import { setEncryptedItem, getEncryptedItem } from "../lib/encryption";
 
@@ -116,6 +116,7 @@ const Home = () => {
                     setEncryptedItem('user', null);
                     setEncryptedItem('tags', null);
                     setEncryptedItem('bookmarks', null);
+                    setEncryptedItem('activeTag', null);
                     setUserObj(null);
                     setUserTags([]);
                     setUserBookMarks([]);
@@ -132,6 +133,7 @@ const Home = () => {
                 setEncryptedItem('user', null);
                 setEncryptedItem('tags', null);
                 setEncryptedItem('bookmarks', null);
+                setEncryptedItem('activeTag', null);
             }
         };
         fetchData();
@@ -186,7 +188,7 @@ const Home = () => {
 
     return (
         <div className="h-[100vh] flex flex-col items-center p-5 md:p-10">
-            {addModal ? <AddModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal}/> : <></>}
+            {addModal ? <AddUpdateModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal}/> : <></>}
             <div className="flex flex-col items-center gap-2 mt-[7rem]">
                 <h1 className="text-[#F0BB78] font-semibold text-2xl md:text-3xl text-center">Centralized Link Management</h1>
                 <p className="text-left w-[90%] text-[12px] md:text-[14px] md:w-auto">Organize and maintain your bookmarks efficiently with easy-to-use tools for saving, categorizing, and accessing your favorite websites.</p>
