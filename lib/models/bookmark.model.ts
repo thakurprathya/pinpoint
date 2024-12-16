@@ -6,7 +6,7 @@ const BookmarkSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, default: '' },
     favicon: { type: String, default: '' },
-    tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tag' }]
+    tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tag', required: true }]
 }, { timestamps: true });
 
 const Bookmark = mongoose.models.Bookmark || mongoose.model("User", BookmarkSchema);

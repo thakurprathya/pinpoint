@@ -2,41 +2,12 @@ import { useState } from "react";
 
 interface Props {
     tags: string[]
-    bookmarks: Object
+    bookmarks: Object | null
     setBookmarks: React.Dispatch<React.SetStateAction<Object[]>>
     isSignedIn: boolean
 };
 
 const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) => {
-    // const tags = []
-    // const tags = ['tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10'];
-    // const bookmarks = {
-    //     "tag1": [
-    //         {
-    //             link: "https://example.comtag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10'tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10'",
-    //             title: "tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10'tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10'tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10'tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10'tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10'",
-    //             description: "This is an example bookmark",
-    //             favicon: "https://example.com/favicon.ico",
-    //             tags: ["tag1", "tag2","tag3","tag4"]
-    //         },
-    //         {
-    //             link: "https://example.com",
-    //             title: "Example Website",
-    //             description: "This is an example bookmark",
-    //             favicon: "https://example.com/favicon.ico",
-    //             tags: ["tag1", "tag2","tag3","tag4"]
-    //         }
-    //     ],
-    //     "tag2": [
-    //         {
-    //             link: "https://example2.com",
-    //             title: "Another Example",
-    //             description: "Another bookmark example",
-    //             favicon: "https://example2.com/favicon.ico",
-    //             tags: ['tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6', 'tag7', 'tag8', 'tag9', 'tag10']
-    //         }
-    //     ]
-    // };
     const [activeTag, setActiveTag] = useState<String>(tags?.[0]);
 
     const capitalize = (str: string): string => {

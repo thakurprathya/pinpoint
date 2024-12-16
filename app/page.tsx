@@ -1,19 +1,73 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useUser, useClerk } from "@clerk/nextjs"
 
 import AddModal from "../components/AddModal";
 import BookmarkTable from "../components/BookmarkTable";
+import { setEncryptedItem, getEncryptedItem } from "../lib/encryption";
 
 const Home = () => {
     // Auth states from Clerk
     const { isLoaded, isSignedIn, user } = useUser();
     const { openSignIn } = useClerk();
 
+    interface UserType {
+        clerkId: string;
+        username: string;
+        email: string;
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
     const [isBtnHovered, setIsBtnHovered] = useState<boolean>(false);
     const [addModal, setAddModal] = useState<boolean>(false);
     const [tags, setTags] = useState<string[]>([]);
-    const [bookmarks, setBookmarks] = useState<Object>({});
+    const [userObj, setUserObj] = useState<UserType | null>(null);
+    const [bookmarks, setBookmarks] = useState<Object | null>(null);
+
+    const HandleAddBookmark = () =>{
+        if(!isSignedIn) return openSignIn();
+        setAddModal(true);
+    }
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                if (!isLoaded) return; // Wait for Clerk authentication to load
+                
+                const storedUser = getEncryptedItem('user');
+                if (user?.id) {
+                    if (!storedUser || !storedUser.clerkId || storedUser.clerkId !== user.id) {
+                        const response = await fetch(`/api/users/getUser?id=${user.id}`, {
+                            method: 'GET',
+                            headers: { 'Content-Type': 'application/json' },
+                            cache: 'no-store'
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch user: ${response.statusText}`);
+                        }
+
+                        const userData = await response.json();
+                        if (userData) {
+                            setUserObj(userData);
+                            setEncryptedItem('user', userData);
+                        }
+                    } else {
+                        setUserObj(storedUser);
+                    }
+                } else {
+                    setEncryptedItem('user', null);
+                    setUserObj(null);
+                }
+            } catch (err) {
+                console.error('Error fetching User:', err);
+                setUserObj(null);
+                setEncryptedItem('user', null);
+            }
+        };
+        fetchUser();
+    }, [user?.id]);
 
     if(!isLoaded) {
         return (
@@ -21,11 +75,6 @@ const Home = () => {
                 <iframe src="/loader.html" className="w-20 h-20"></iframe>
             </div>
         );
-    }
-
-    const HandleAddBookmark = () =>{
-        if(!isSignedIn) return openSignIn();
-        setAddModal(true);
     }
 
     return (
