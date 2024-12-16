@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Bookmark {
     link: string;
@@ -17,7 +17,7 @@ interface Props {
 };
 
 const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) => {
-    const [activeTag, setActiveTag] = useState<String>(tags?.[0]);
+    const [activeTag, setActiveTag] = useState<String>('');
 
     const capitalize = (str: string): string => {
         return str
@@ -25,6 +25,12 @@ const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) =>
             .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
             .join(' ');
     };
+
+    useEffect(() => {
+        if (tags.length > 0 && !activeTag) {
+            setActiveTag(tags[0]);
+        }
+    }, [tags]);
     
     return (
         <div className={`bg-[#543A14] bg-opacity-50 rounded-md border border-[#543A14] w-full p-3 md:p-5`} style={{ backdropFilter: 'blur(10px)', filter: 'brightness(70%)' }}>
@@ -64,7 +70,7 @@ const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) =>
                                     <th scope="col" className="p-3 text-center w-[20%]">Actions</th>
                                 </tr>
                             </thead>
-                            {/* <tbody>
+                            <tbody>
                                 {bookmarks && bookmarks[activeTag as keyof typeof bookmarks]?.length > 0 && bookmarks[activeTag as keyof typeof bookmarks]?.map((bookmark, index) =>
                                     <tr key={bookmark.link+index} className={`w-full ${(index+1 === bookmarks[activeTag as keyof typeof bookmarks]?.length) ? '' : 'border-b border-[#F0BB78] border-opacity-30'}`}>
                                         <td className="p-3 text-center w-[5%]">{index + 1}</td>
@@ -95,7 +101,7 @@ const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) =>
                                         </td>
                                     </tr>
                                 )}
-                            </tbody> */}
+                            </tbody>
                         </table>
                     </div>
                 </>

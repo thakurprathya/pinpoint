@@ -68,6 +68,82 @@ export async function createBookmark(bookmarkData: {
     }
 }
 
+export async function updateBookmark(
+    bookmarkId: string,
+    bookmarkData: {
+        user: string;
+        link: string;
+        title: string;
+        description?: string;
+        favicon?: string;
+        tags: string[];
+    }
+) {
+    try {
+        await connectToDB();
+
+        const existingBookmark = await Bookmark.findById(bookmarkId);
+        if (!existingBookmark) throw new Error("Bookmark not found");
+
+        const tagIds = await Promise.all(bookmarkData.tags.map(async (tagName) => {
+            let tag = await Tag.findOne({ name: tagName, user: new Types.ObjectId(bookmarkData.user) });
+            
+            if (!tag) {
+                tag = await Tag.create({
+                    name: tagName,
+                    user: new Types.ObjectId(bookmarkData.user)
+                });
+            } else if (tag.deleted) {
+                tag = await Tag.findByIdAndUpdate(
+                    tag._id,
+                    { deleted: false },
+                    { new: true }
+                );
+            }
+            if (!tag) throw new Error('Failed to create or update tag');
+            return tag._id;
+        }));
+
+        // Handle old tags that are no longer used
+        const oldTagIds = existingBookmark.tags;
+        await Promise.all(oldTagIds.map(async (tagId: Types.ObjectId) => {
+            if (!tagIds.includes(tagId)) {
+                const bookmarksWithTag = await Bookmark.countDocuments({
+                    _id: { $ne: existingBookmark._id },
+                    tags: tagId
+                });
+                
+                if (bookmarksWithTag === 0) {
+                    await Tag.findOneAndUpdate(
+                        { _id: tagId, deleted: false },
+                        { deleted: true },
+                        { new: true }
+                    );
+                }
+            }
+        }));
+
+        const { favicon, description } = await extractFaviconAndDescription(bookmarkData.link);
+        bookmarkData.favicon = favicon;
+        bookmarkData.description = description;
+
+        const updatedBookmark = await Bookmark.findByIdAndUpdate(
+            bookmarkId,
+            {
+                ...bookmarkData,
+                user: new Types.ObjectId(bookmarkData.user),
+                tags: tagIds
+            },
+            { new: true }
+        );
+
+        return updatedBookmark;
+    } catch (error) {
+        console.error("Error updating bookmark:", error);
+        throw error;
+    }
+}
+
 export async function deleteBookmark(bookmarkId: string) {
     try {
         await connectToDB();

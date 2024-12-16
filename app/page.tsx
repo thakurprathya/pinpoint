@@ -20,6 +20,7 @@ const Home = () => {
     }
 
     interface TagType {
+        _id: string;
         user: string;
         name: string;
         deleted?: boolean;
@@ -134,27 +135,42 @@ const Home = () => {
     }, [user?.id]);
 
     useEffect(() => {
-        const tagNames = userTags.map(tag => tag.name);
-        setTags(tagNames);
-        setEncryptedItem('tags', tagNames);
+        const storedTags = getEncryptedItem('tags');
+        if(storedTags && storedTags.length > 0) {
+            setTags(storedTags);
+        } else {
+            const tagNames = userTags.map(tag => tag.name);
+            setTags(tagNames);
+            setEncryptedItem('tags', tagNames);
+        }
     }, [userTags]);
 
     useEffect(() => {
-        if (userBookmarks.length === 0) {
-            setBookmarks(null);
-            setEncryptedItem('bookmarks', null);
-            return;
+        const storedBookmarks = getEncryptedItem('bookmarks');
+        if(storedBookmarks && Object.keys(storedBookmarks).length > 0){
+            setBookmarks(storedBookmarks);
+        } else {
+            if(userBookmarks.length === 0) {
+                setBookmarks(null);
+                setEncryptedItem('bookmarks', null);
+                return;
+            }
+    
+            const bookmarksByTag: BookmarkMap = {};
+            userTags.forEach(tag => {
+                bookmarksByTag[tag.name] = userBookmarks.filter(
+                    bookmark => bookmark.tags.includes(tag._id)
+                ).map(bookmark => ({
+                    ...bookmark,
+                    tags: bookmark.tags.map(tagId => 
+                        userTags.find(t => t._id === tagId)?.name || ''
+                    ).filter(name => name !== '')
+                }));
+            });
+    
+            setBookmarks(bookmarksByTag);
+            setEncryptedItem('bookmarks', bookmarksByTag);
         }
-
-        const bookmarksByTag: { [key: string]: BookmarkType[] } = {};
-        userTags.forEach(tag => {
-            bookmarksByTag[tag.name] = userBookmarks.filter(
-                bookmark => bookmark.tags.includes(tag.name)
-            );
-        });
-
-        setBookmarks(bookmarksByTag);
-        setEncryptedItem('bookmarks', bookmarksByTag);
     }, [userBookmarks, userTags]);
 
     if(!isLoaded) {

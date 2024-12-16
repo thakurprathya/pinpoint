@@ -76,16 +76,27 @@ const AddModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Prop
             return;
         }
 
-        const updatedTags = [...tags, ...linkTags];
+        // First, filter out any duplicate tags
+        const newTags = linkTags.filter(tag => !tags.includes(tag));
+        const updatedTags = [...tags, ...newTags];
         setTags(updatedTags);
         setEncryptedItem('tags', updatedTags);
 
         const bookmark = await response.json();
-        const updatedBookmarks = { ...bookmarks };
+        const newBookmark = {
+            ...bookmark,
+            tags: [...linkTags]
+        };
+
+        // Update bookmarks state
+        const updatedBookmarks = bookmarks ? { ...bookmarks } : {};
         linkTags.forEach(tag => {
-            updatedBookmarks[tag] = updatedBookmarks[tag] || [];
-            updatedBookmarks[tag].push(bookmark);
+            if (!updatedBookmarks[tag]) updatedBookmarks[tag] = [];
+            updatedBookmarks[tag].push(newBookmark);
         });
+
+        console.log(updatedBookmarks)
+        
         setBookmarks(updatedBookmarks);
         setEncryptedItem('bookmarks', updatedBookmarks);
 
