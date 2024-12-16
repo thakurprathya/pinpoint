@@ -19,10 +19,33 @@ const Home = () => {
         updatedAt?: Date;
     }
 
+    interface TagType {
+        user: string;
+        name: string;
+        deleted?: boolean;
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
+    interface BookmarkType {
+        user: string;
+        link: string;
+        title: string;
+        description?: string;
+        favicon?: string;
+        tags: string[];
+        createdAt?: Date;
+        updatedAt?: Date;
+    }
+
     const [isBtnHovered, setIsBtnHovered] = useState<boolean>(false);
     const [addModal, setAddModal] = useState<boolean>(false);
-    const [tags, setTags] = useState<string[]>([]);
+
     const [userObj, setUserObj] = useState<UserType | null>(null);
+    const [userTags, setUserTags] = useState<TagType[]>([]);
+    const [userBookmarks, setUserBookMarks] = useState<BookmarkType[]>([]);
+
+    const [tags, setTags] = useState<string[]>([]);
     const [bookmarks, setBookmarks] = useState<Object | null>(null);
 
     const HandleAddBookmark = () =>{
@@ -31,43 +54,92 @@ const Home = () => {
     }
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchData = async () => {
             try {
-                if (!isLoaded) return; // Wait for Clerk authentication to load
-                
+                if (!isLoaded) return;
+
                 const storedUser = getEncryptedItem('user');
+                const storedTags = getEncryptedItem('tags');
+                const storedBookmarks = getEncryptedItem('bookmarks');
+
                 if (user?.id) {
-                    if (!storedUser || !storedUser.clerkId || storedUser.clerkId !== user.id) {
-                        const response = await fetch(`/api/users/getUser?id=${user.id}`, {
+                    // Fetch user data if not stored or different user
+                    if(!storedUser || !storedUser.clerkId || storedUser.clerkId !== user.id) {
+                        const userResponse = await fetch(`/api/users/getUser?id=${user.id}`, {
                             method: 'GET',
                             headers: { 'Content-Type': 'application/json' },
                             cache: 'no-store'
                         });
 
-                        if (!response.ok) {
-                            throw new Error(`Failed to fetch user: ${response.statusText}`);
+                        if (!userResponse.ok) {
+                            throw new Error(`Failed to fetch user: ${userResponse.statusText}`);
                         }
 
-                        const userData = await response.json();
+                        const userData = await userResponse.json();
                         if (userData) {
                             setUserObj(userData);
                             setEncryptedItem('user', userData);
+
+                            // Fetch tags
+                            const tagsResponse = await fetch(`/api/tags/getTags?id=${userData._id}`);
+                            const tagsData = await tagsResponse.json();
+                            setUserTags(tagsData);
+                            setEncryptedItem('tags', tagsData);
+
+                            // Fetch bookmarks
+                            const bookmarksResponse = await fetch(`/api/bookmarks/getBookmarks?id=${userData._id}`);
+                            const bookmarksData = await bookmarksResponse.json();
+                            setUserBookMarks(bookmarksData);
+                            setEncryptedItem('bookmarks', bookmarksData);
                         }
                     } else {
+                        // Use stored data
                         setUserObj(storedUser);
+                        setUserTags(storedTags || []);
+                        setUserBookMarks(storedBookmarks || []);
                     }
-                } else {
+                } 
+                else{
                     setEncryptedItem('user', null);
+                    setEncryptedItem('tags', null);
+                    setEncryptedItem('bookmarks', null);
                     setUserObj(null);
+                    setUserTags([]);
+                    setUserBookMarks([]);
                 }
             } catch (err) {
-                console.error('Error fetching User:', err);
+                console.error('Error fetching data:', err);
                 setUserObj(null);
+                setUserTags([]);
+                setUserBookMarks([]);
                 setEncryptedItem('user', null);
+                setEncryptedItem('tags', null);
+                setEncryptedItem('bookmarks', null);
             }
         };
-        fetchUser();
+        fetchData();
     }, [user?.id]);
+
+    useEffect(() => {
+        const tagNames = userTags.map(tag => tag.name);
+        setTags(tagNames);
+    }, [userTags]);
+
+    useEffect(() => {
+        if (userBookmarks.length === 0) {
+            setBookmarks(null);
+            return;
+        }
+
+        const bookmarksByTag: { [key: string]: BookmarkType[] } = {};
+        userTags.forEach(tag => {
+            bookmarksByTag[tag.name] = userBookmarks.filter(
+                bookmark => bookmark.tags.includes(tag.name)
+            );
+        });
+
+        setBookmarks(bookmarksByTag);
+    }, [userBookmarks, userTags]);
 
     if(!isLoaded) {
         return (

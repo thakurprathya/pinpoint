@@ -5,6 +5,7 @@ import { getTags } from '../../../../lib/actions/tag.action';
 export async function GET(req: Request) {
     try {
         const id = req.url.split('?id=')[1];
+        console.log(id)
         if(!id) {
             return NextResponse.json({ error: 'ID not found' }, { status: 400 });
         }

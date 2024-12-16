@@ -6,6 +6,6 @@ const TagSchema = new mongoose.Schema({
     deleted: { type: Boolean, default: false },
 }, { timestamps: true });
 
-const Tag = mongoose.model('Tag', TagSchema) || mongoose.model("Tag", TagSchema);
+const Tag = mongoose.models.Tag || mongoose.model("Tag", TagSchema);
 // mongoose.model("Tag", TagSchema)  will create the mongoose model, as first time there will be no exisiting schema, afterwards will fetch from mongoose.models.Tag
 export default Tag;
