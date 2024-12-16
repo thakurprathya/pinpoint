@@ -1,6 +1,20 @@
 import { useEffect, useState } from "react";
+import { getEncryptedItem, setEncryptedItem } from "../lib/encryption";
 
+interface BookmarkType {
+    _id: string;
+    user: string;
+    link: string;
+    title: string;
+    description?: string;
+    favicon?: string;
+    tags: string[];
+    createdAt?: Date;
+    updatedAt?: Date;
+}
 interface Bookmark {
+    _id: string;
+    user: string;
     link: string;
     title: string;
     tags: string[];
@@ -11,12 +25,13 @@ interface BookmarkMap {
 }
 interface Props {
     tags: string[]
+    setTags: React.Dispatch<React.SetStateAction<string[]>>
     bookmarks: BookmarkMap | null
     setBookmarks: React.Dispatch<React.SetStateAction<BookmarkMap | null>>
     isSignedIn: boolean
 };
 
-const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) => {
+const BookmarkTable = ({ tags, setTags, bookmarks, setBookmarks, isSignedIn } : Props) => {
     const [activeTag, setActiveTag] = useState<String>('');
 
     const capitalize = (str: string): string => {
@@ -26,12 +41,71 @@ const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) =>
             .join(' ');
     };
 
-    useEffect(() => {
-        if (tags.length > 0 && !activeTag) {
-            setActiveTag(tags[0]);
-        }
-    }, [tags]);
+    const HandleEditBookmark = async (bookmark : BookmarkType) => {
+        
+    }
     
+    const HandleDeleteBookmark = async (bookmark : BookmarkType) => {
+        const userObj = getEncryptedItem('user');
+
+        // Add confirmation dialog
+        const isConfirmed = window.confirm('Are you sure you want to delete this bookmark?');
+        if (!isConfirmed) return;
+
+        const response = await fetch('/api/bookmarks/deleteBookmark', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: userObj?._id,
+                bookmarkId: bookmark._id
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            alert(error);
+            return;
+        }
+
+        // Update bookmarks and tags state
+        const updatedBookmarks: BookmarkMap = { ...bookmarks };
+        const tagsToRemove: string[] = [];
+        
+        bookmark.tags.forEach((tag) => {
+            updatedBookmarks[tag] = updatedBookmarks[tag].filter(b => b.link !== bookmark.link);
+            if (updatedBookmarks[tag].length === 0) {
+                delete updatedBookmarks[tag];
+                tagsToRemove.push(tag);
+            }
+        });
+
+        setTags(prevTags => {
+            const newTags = prevTags.filter(t => !tagsToRemove.includes(t));
+            setEncryptedItem('tags', newTags);
+            if (activeTag && tagsToRemove.includes(activeTag.toString())) {
+                setActiveTag(newTags.length > 0 ? newTags[0] : '');
+                setEncryptedItem('activeTag', newTags.length > 0 ? newTags[0] : '');
+            }
+            return newTags;
+        });
+
+        setBookmarks(updatedBookmarks);
+        setEncryptedItem('bookmarks', updatedBookmarks);
+    }
+
+    useEffect(() => {
+        const sessionActiveTag = getEncryptedItem('activeTag');
+        if (tags.length > 0) {
+            if (sessionActiveTag && tags.includes(sessionActiveTag)) {
+                setActiveTag(sessionActiveTag);
+            } else {
+                setActiveTag(tags[0]);
+            }
+        }
+    }, [tags, bookmarks]);
+
     return (
         <div className={`bg-[#543A14] bg-opacity-50 rounded-md border border-[#543A14] w-full p-3 md:p-5`} style={{ backdropFilter: 'blur(10px)', filter: 'brightness(70%)' }}>
             {!isSignedIn ?
@@ -49,6 +123,7 @@ const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) =>
                                     onClick={(e) => {
                                         e.preventDefault();
                                         setActiveTag(tag);
+                                        setEncryptedItem('activeTag', tag);
                                     }}
                                     className={`inline-block p-4 text-[#F0BB78] rounded-t-lg ${activeTag === tag ? 'bg-[#543A14]' : ''} hover:bg-[#543A14] hover:opacity-80`}
                                 >
@@ -87,12 +162,12 @@ const BookmarkTable = ({ tags, bookmarks, setBookmarks, isSignedIn } : Props) =>
                                         </td>
                                         <td className="p-3 w-[20%]">
                                             <div className="flex items-center justify-center gap-5 h-full">
-                                                <button className="flex items-center justify-center">
+                                                <button onClick={() => HandleEditBookmark(bookmark)} className="flex items-center justify-center">
                                                     <svg viewBox="0 0 24 24" className="w-5 fill-[#F0BB78]">
                                                         <path d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/>
                                                     </svg>
                                                 </button>
-                                                <button className="flex items-center justify-center">
+                                                <button onClick={() => HandleDeleteBookmark(bookmark)} className="flex items-center justify-center">
                                                     <svg viewBox="0 0 24 24" className="w-5 fill-red-500">
                                                     <path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12z" />
                                                     </svg>

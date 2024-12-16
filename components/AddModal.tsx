@@ -2,6 +2,8 @@ import { useState } from "react"
 import { getEncryptedItem, setEncryptedItem } from "../lib/encryption"
 
 interface Bookmark {
+    _id: string;
+    user: string;
     link: string;
     title: string;
     tags: string[];
@@ -48,12 +50,23 @@ const AddModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Prop
         setAddModal(false);
     }
 
+    const HandleAddTag = (newTag: string) => {
+        if (!linkTags.includes(newTag.trim().toLowerCase())) {
+            setLinkTags(prev => [...prev, newTag.trim().toLowerCase()]);
+        }
+        setTag('');
+        setIsFocused(false);
+    };
+
     const HandleModalSave = async () =>{
         if(link === ""){
             alert('Link is required!!!');
             return;
         }
-        if(linkTags.length === 0) setLinkTags(["General"]);
+        if(linkTags.length === 0){
+            alert('Atleast One tag is required!!!');
+            return;
+        }
 
         const userObj = getEncryptedItem('user');
 
@@ -94,8 +107,6 @@ const AddModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Prop
             if (!updatedBookmarks[tag]) updatedBookmarks[tag] = [];
             updatedBookmarks[tag].push(newBookmark);
         });
-
-        console.log(updatedBookmarks)
         
         setBookmarks(updatedBookmarks);
         setEncryptedItem('bookmarks', updatedBookmarks);
@@ -141,10 +152,9 @@ const AddModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Prop
                         onBlur={(e) => setTimeout(() => setIsFocused(false), 200)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && tag.trim()) {
-                                if(!linkTags.includes(tag.trim())) setLinkTags([...linkTags, tag.trim()]);
-                                setTag('');
+                                e.preventDefault();
                                 (e.target as HTMLInputElement).blur();
-                                setIsFocused(false);
+                                HandleAddTag(tag);
                             }
                         }}
                     />

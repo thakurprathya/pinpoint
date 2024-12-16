@@ -29,6 +29,7 @@ const Home = () => {
     }
 
     interface BookmarkType {
+        _id: string;
         user: string;
         link: string;
         title: string;
@@ -40,6 +41,8 @@ const Home = () => {
     }
 
     interface Bookmark {
+        _id: string;
+        user: string;
         link: string;
         title: string;
         tags: string[];
@@ -202,7 +205,7 @@ const Home = () => {
                     <p className={`text-[12px] md:text-lg ${isBtnHovered ? 'text-[#131010]' : 'text-[#F0BB78]'} transition-colors duration-200`}>Add Bookmark</p>
                 </button>
 
-                <BookmarkTable tags={tags} bookmarks={bookmarks} setBookmarks={setBookmarks} isSignedIn={isSignedIn}/>
+                <BookmarkTable tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} isSignedIn={isSignedIn}/>
             </div>
         </div>
     )
