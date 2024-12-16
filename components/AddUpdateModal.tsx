@@ -27,8 +27,9 @@ interface Props {
 };
 
 const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, bookmarkToUpdate } : Props) => {
-    const [isModalHovered, setIsModalHovered] = useState(false);
+    const [isModalHovered, setIsModalHovered] = useState<boolean>(false);
     const [isFocused, setIsFocused] = useState<boolean>(false);
+    const [isRequestSuccess, setIsRequestSuccess] = useState<boolean>(true);
     const [linkTags, setLinkTags] = useState<string[]>([]);
     const [link, setLink] = useState<string>('');
     const [tag, setTag] = useState<string>('');
@@ -89,6 +90,8 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
                 
             const method = bookmarkToUpdate ? 'PUT' : 'POST';
 
+            setIsRequestSuccess(false);
+
             const response = await fetch(endpoint, {
                 method,
                 headers: {
@@ -110,6 +113,7 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
             }
 
             const bookmark = await response.json();
+            setIsRequestSuccess(true)
             
             // Update bookmarks state
             const updatedBookmarks = { ...(bookmarks || {}) };
@@ -171,6 +175,13 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
         }
     }, [bookmarkToUpdate]);
 
+    if(!isRequestSuccess) {
+        return (
+            <div className="z-40 bg-opacity-70 bg-black fixed top-0 left-0 flex items-center justify-center w-[100%] h-[100%]">
+                <iframe src="/loader.html" className="w-20 h-20"></iframe>
+            </div>
+        );
+    }
 
     return (
         <div 
