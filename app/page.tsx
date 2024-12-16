@@ -38,6 +38,16 @@ const Home = () => {
         updatedAt?: Date;
     }
 
+    interface Bookmark {
+        link: string;
+        title: string;
+        tags: string[];
+    }
+    
+    interface BookmarkMap {
+        [key: string]: Bookmark[];
+    }
+
     const [isBtnHovered, setIsBtnHovered] = useState<boolean>(false);
     const [addModal, setAddModal] = useState<boolean>(false);
 
@@ -46,7 +56,7 @@ const Home = () => {
     const [userBookmarks, setUserBookMarks] = useState<BookmarkType[]>([]);
 
     const [tags, setTags] = useState<string[]>([]);
-    const [bookmarks, setBookmarks] = useState<Object | null>(null);
+    const [bookmarks, setBookmarks] = useState<BookmarkMap | null>(null);
 
     const HandleAddBookmark = () =>{
         if(!isSignedIn) return openSignIn();
@@ -61,7 +71,6 @@ const Home = () => {
                 const storedUser = getEncryptedItem('user');
                 const storedTags = getEncryptedItem('tags');
                 const storedBookmarks = getEncryptedItem('bookmarks');
-
                 if (user?.id) {
                     // Fetch user data if not stored or different user
                     if(!storedUser || !storedUser.clerkId || storedUser.clerkId !== user.id) {
@@ -84,19 +93,19 @@ const Home = () => {
                             const tagsResponse = await fetch(`/api/tags/getTags?id=${userData._id}`);
                             const tagsData = await tagsResponse.json();
                             setUserTags(tagsData);
-                            setEncryptedItem('tags', tagsData);
 
                             // Fetch bookmarks
                             const bookmarksResponse = await fetch(`/api/bookmarks/getBookmarks?id=${userData._id}`);
                             const bookmarksData = await bookmarksResponse.json();
                             setUserBookMarks(bookmarksData);
-                            setEncryptedItem('bookmarks', bookmarksData);
                         }
                     } else {
                         // Use stored data
                         setUserObj(storedUser);
-                        setUserTags(storedTags || []);
-                        setUserBookMarks(storedBookmarks || []);
+                        setUserTags([]);
+                        setUserBookMarks([]);
+                        setTags(storedTags);
+                        setBookmarks(storedBookmarks);
                     }
                 } 
                 else{
@@ -106,12 +115,16 @@ const Home = () => {
                     setUserObj(null);
                     setUserTags([]);
                     setUserBookMarks([]);
+                    setTags([]);
+                    setBookmarks(null);
                 }
             } catch (err) {
                 console.error('Error fetching data:', err);
                 setUserObj(null);
                 setUserTags([]);
                 setUserBookMarks([]);
+                setTags([]);
+                setBookmarks(null);
                 setEncryptedItem('user', null);
                 setEncryptedItem('tags', null);
                 setEncryptedItem('bookmarks', null);
@@ -123,11 +136,13 @@ const Home = () => {
     useEffect(() => {
         const tagNames = userTags.map(tag => tag.name);
         setTags(tagNames);
+        setEncryptedItem('tags', tagNames);
     }, [userTags]);
 
     useEffect(() => {
         if (userBookmarks.length === 0) {
             setBookmarks(null);
+            setEncryptedItem('bookmarks', null);
             return;
         }
 
@@ -139,6 +154,7 @@ const Home = () => {
         });
 
         setBookmarks(bookmarksByTag);
+        setEncryptedItem('bookmarks', bookmarksByTag);
     }, [userBookmarks, userTags]);
 
     if(!isLoaded) {
@@ -151,7 +167,7 @@ const Home = () => {
 
     return (
         <div className="h-[100vh] flex flex-col items-center p-5 md:p-10">
-            {addModal ? <AddModal tags={tags} setTags={setTags} setAddModal={setAddModal}/> : <></>}
+            {addModal ? <AddModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal}/> : <></>}
             <div className="flex flex-col items-center gap-2 mt-[7rem]">
                 <h1 className="text-[#F0BB78] font-semibold text-2xl md:text-3xl text-center">Centralized Link Management</h1>
                 <p className="text-left w-[90%] text-[12px] md:text-[14px] md:w-auto">Organize and maintain your bookmarks efficiently with easy-to-use tools for saving, categorizing, and accessing your favorite websites.</p>

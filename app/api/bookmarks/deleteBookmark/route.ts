@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server"
 
 import { deleteBookmark } from "../../../../lib/actions/bookmark.action";
-import { getEncryptedItem } from "../../../../lib/encryption";
 
 export async function DELETE(request: Request) {
     try {
-        const user = getEncryptedItem('user');
-        const userId = user?._id;
+        const body = await request.json();
+        const { userId } = body;
         if (!userId) {
-            return new NextResponse("Unauthorized", { status: 401 });
+            return new NextResponse("Unauthorized: User ID is required", { status: 401 });
         }
 
-        const url = new URL(request.url);
-        const bookmarkId = url.searchParams.get('id');
+        const { bookmarkId } = body;
         if (!bookmarkId) {
             return new NextResponse("Bookmark ID is required", { status: 400 });
         }

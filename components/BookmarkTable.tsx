@@ -1,9 +1,18 @@
 import { useState } from "react";
 
+interface Bookmark {
+    link: string;
+    title: string;
+    tags: string[];
+}
+
+interface BookmarkMap {
+    [key: string]: Bookmark[];
+}
 interface Props {
     tags: string[]
-    bookmarks: Object | null
-    setBookmarks: React.Dispatch<React.SetStateAction<Object[]>>
+    bookmarks: BookmarkMap | null
+    setBookmarks: React.Dispatch<React.SetStateAction<BookmarkMap | null>>
     isSignedIn: boolean
 };
 

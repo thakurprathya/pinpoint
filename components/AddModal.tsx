@@ -1,12 +1,25 @@
-import { use, useState } from "react"
+import { useState } from "react"
+import { getEncryptedItem, setEncryptedItem } from "../lib/encryption"
+
+interface Bookmark {
+    link: string;
+    title: string;
+    tags: string[];
+}
+
+interface BookmarkMap {
+    [key: string]: Bookmark[];
+}
 
 interface Props {
     tags: string[]
     setTags: React.Dispatch<React.SetStateAction<string[]>>
+    bookmarks: BookmarkMap | null
+    setBookmarks: React.Dispatch<React.SetStateAction<BookmarkMap | null>>
     setAddModal: React.Dispatch<React.SetStateAction<boolean>>
 };
 
-const AddModal = ({ tags, setTags, setAddModal } : Props) => {
+const AddModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal } : Props) => {
     const [isModalHovered, setIsModalHovered] = useState(false);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const [linkTags, setLinkTags] = useState<string[]>([]);
@@ -35,14 +48,46 @@ const AddModal = ({ tags, setTags, setAddModal } : Props) => {
         setAddModal(false);
     }
 
-    const HandleModalSave = () =>{
+    const HandleModalSave = async () =>{
         if(link === ""){
             alert('Link is required!!!');
             return;
         }
         if(linkTags.length === 0) setLinkTags(["General"]);
 
-        setTags([...tags, ...linkTags]);
+        const userObj = getEncryptedItem('user');
+
+        const response = await fetch('/api/bookmarks/createBookmark', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: userObj?._id,
+                link,
+                title,
+                tags: linkTags
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            alert(error);
+            return;
+        }
+
+        const updatedTags = [...tags, ...linkTags];
+        setTags(updatedTags);
+        setEncryptedItem('tags', updatedTags);
+
+        const bookmark = await response.json();
+        const updatedBookmarks = { ...bookmarks };
+        linkTags.forEach(tag => {
+            updatedBookmarks[tag] = updatedBookmarks[tag] || [];
+            updatedBookmarks[tag].push(bookmark);
+        });
+        setBookmarks(updatedBookmarks);
+        setEncryptedItem('bookmarks', updatedBookmarks);
 
         setDefaultStates();
         setAddModal(false);
@@ -129,7 +174,7 @@ const AddModal = ({ tags, setTags, setAddModal } : Props) => {
                         {linkTags.length > 0 && linkTags.map((tag, index) =>
                             <div 
                             key={index+tag+'*'}
-                            className="text-sm p-1 rounded-md bg-[#F0BB78] text-[#543A14] flex items-center gap-2"
+                            className="text-sm p-1 pl-2 rounded-md bg-[#F0BB78] text-[#543A14] flex items-center gap-2"
                             >
                                 <p>{capitalize(tag)}</p>
                                 <button onClick={() => setLinkTags(linkTags.filter(t => t !== tag))}>
