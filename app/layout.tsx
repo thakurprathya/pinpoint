@@ -6,8 +6,23 @@ import Footer from '../components/Footer';
 import Header from '../components/Header';
 
 export const metadata: Metadata = {
-    title: "PinPoint",
-    description: "Your bookmark manager",
+    title: "PinPoint - Centralized Bookmark Management System",
+    description: "Efficiently organize and manage your bookmarks with PinPoint. Features include custom tags, real-time updates, secure encryption, and powerful search capabilities.",
+    keywords: "bookmark manager, link organization, bookmark storage, web bookmarks, bookmark tags",
+    authors: [{ name: "PinPoint" }],
+    openGraph: {
+        title: "PinPoint - Centralized Bookmark Management",
+        description: "Organize your bookmarks efficiently with custom tags, search, and secure storage.",
+        type: "website",
+        locale: "en_US",
+        images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "PinPoint - Bookmark Management System",
+        description: "Your personal bookmark organization solution",
+        images: ["/twitter-image.jpg"],
+    },
     icons: {
         icon: "/favicon.svg",
         shortcut: "/favicon.svg",
@@ -17,7 +32,16 @@ export const metadata: Metadata = {
             url: "/favicon.svg",
             color: "#F0BB78"
         }
-    }
+    },
+    robots: {
+        index: true,
+        follow: true,
+    },
+    viewport: {
+        width: "device-width",
+        initialScale: 1,
+    },
+    manifest: "/manifest.json"
 };
 
 const clerkTheme = {

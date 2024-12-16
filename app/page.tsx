@@ -181,6 +181,13 @@ const Home = () => {
         }
     }, [userBookmarks, userTags]);
 
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }, [user?.id]);
+
     if(!isLoaded) {
         return (
             <div className="flex items-center justify-center w-full h-[100vh]">
@@ -193,7 +200,7 @@ const Home = () => {
         <div className="h-[100vh] flex flex-col items-center p-5 md:p-10">
             {addModal ? <AddUpdateModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal} bookmarkToUpdate={bookmarkToUpdate}/> : <></>}
             <div className="flex flex-col items-center gap-2 mt-[7rem]">
-                <h1 className="text-[#F0BB78] font-semibold text-2xl md:text-3xl text-center">Centralized Link Management</h1>
+                <h1 className="text-[#F0BB78] font-semibold text-2xl md:text-3xl text-center">Centralized Bookmark Management</h1>
                 <p className="text-left w-[90%] text-[12px] md:text-[14px] md:w-auto">Organize and maintain your bookmarks efficiently with easy-to-use tools for saving, categorizing, and accessing your favorite websites.</p>
             </div>
 
