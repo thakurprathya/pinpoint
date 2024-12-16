@@ -1,5 +1,10 @@
 # Development Guide
 
+## docs to refer to link db with clerk
+```
+https://clerk.com/blog/webhooks-getting-started
+```
+
 ## Local Development Setup
 
 1. Start the development server:
@@ -26,7 +31,7 @@ To use a custom subdomain, modify the tunnel script in package.json:
 
 ### LocalTunnel Setup Example
 
-![LocalTunnel Setup](../public/localtunnel.png)
+![LocalTunnel Setup](./public/localtunnel.png)
 
 ## Cron Job Setup Guide
 
