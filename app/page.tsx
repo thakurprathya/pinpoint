@@ -54,6 +54,7 @@ const Home = () => {
 
     const [isBtnHovered, setIsBtnHovered] = useState<boolean>(false);
     const [addModal, setAddModal] = useState<boolean>(false);
+    const [isContentLoaded, setIsContentLoaded] = useState<boolean>(true);
 
     const [userObj, setUserObj] = useState<UserType | null>(null);
     const [userTags, setUserTags] = useState<TagType[]>([]);
@@ -79,6 +80,8 @@ const Home = () => {
                 const storedTags = getEncryptedItem('tags');
                 const storedBookmarks = getEncryptedItem('bookmarks');
                 if (user?.id) {
+                    setIsContentLoaded(false);
+
                     // Fetch user data if not stored or different user
                     if(!storedUser || !storedUser.clerkId || storedUser.clerkId !== user.id) {
                         const userResponse = await fetch(`/api/users/getUser?id=${user.id}`, {
@@ -92,6 +95,7 @@ const Home = () => {
                         }
 
                         const userData = await userResponse.json();
+                        setIsContentLoaded(true);
                         if (userData) {
                             setUserObj(userData);
                             setEncryptedItem('user', userData);
@@ -188,7 +192,7 @@ const Home = () => {
         });
     }, [user?.id]);
 
-    if(!isLoaded) {
+    if(!isLoaded || !isContentLoaded) {
         return (
             <div className="flex items-center justify-center w-full h-[100vh]">
                 <iframe src="/loader.html" className="w-20 h-20"></iframe>
