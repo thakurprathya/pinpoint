@@ -73,6 +73,7 @@ const Home = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            setIsContentLoaded(false); // Set loading at start
             try {
                 if (!isLoaded) return;
 
@@ -80,8 +81,6 @@ const Home = () => {
                 const storedTags = getEncryptedItem('tags');
                 const storedBookmarks = getEncryptedItem('bookmarks');
                 if (user?.id) {
-                    setIsContentLoaded(false);
-
                     // Fetch user data if not stored or different user
                     if(!storedUser || !storedUser.clerkId || storedUser.clerkId !== user.id) {
                         const userResponse = await fetch(`/api/users/getUser?id=${user.id}`, {
@@ -95,7 +94,6 @@ const Home = () => {
                         }
 
                         const userData = await userResponse.json();
-                        setIsContentLoaded(true);
                         if (userData) {
                             setUserObj(userData);
                             setEncryptedItem('user', userData);
@@ -119,7 +117,7 @@ const Home = () => {
                         setBookmarks(storedBookmarks);
                     }
                 } 
-                else{
+                else {
                     setEncryptedItem('user', null);
                     setEncryptedItem('tags', null);
                     setEncryptedItem('bookmarks', null);
@@ -141,10 +139,12 @@ const Home = () => {
                 setEncryptedItem('tags', null);
                 setEncryptedItem('bookmarks', null);
                 setEncryptedItem('activeTag', null);
+            } finally {
+                setIsContentLoaded(true); // Always set loading to false when done
             }
         };
         fetchData();
-    }, [user?.id]);
+    }, [user?.id, isLoaded]);
 
     useEffect(() => {
         const storedTags = getEncryptedItem('tags');
@@ -201,7 +201,7 @@ const Home = () => {
     }
 
     return (
-        <div className="h-[100vh] flex flex-col items-center p-5 md:p-10">
+        <div className="min-h-[100vh] flex flex-col items-center p-5 md:p-10">
             {addModal ? <AddUpdateModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal} bookmarkToUpdate={bookmarkToUpdate}/> : <></>}
             <div className="flex flex-col items-center gap-2 mt-[7rem]">
                 <h1 className="text-[#F0BB78] font-semibold text-2xl md:text-3xl text-center">Centralized Bookmark Management</h1>

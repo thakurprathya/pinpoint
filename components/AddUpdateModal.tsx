@@ -82,15 +82,13 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
         }
 
         const userObj = getEncryptedItem('user');
-
+        setIsRequestSuccess(false);
         try {
             const endpoint = bookmarkToUpdate 
                 ? '/api/bookmarks/updateBookmark'
                 : '/api/bookmarks/createBookmark';
                 
             const method = bookmarkToUpdate ? 'PUT' : 'POST';
-
-            setIsRequestSuccess(false);
 
             const response = await fetch(endpoint, {
                 method,
@@ -113,7 +111,6 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
             }
 
             const bookmark = await response.json();
-            setIsRequestSuccess(true)
             
             // Update bookmarks state
             const updatedBookmarks = { ...(bookmarks || {}) };
@@ -164,6 +161,8 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
         } catch (err) {
             console.error('Error saving bookmark:', err);
             alert('Failed to save bookmark');
+        } finally {
+            setIsRequestSuccess(true)
         }
     }
 
