@@ -24,9 +24,10 @@ interface Props {
     setBookmarks: React.Dispatch<React.SetStateAction<BookmarkMap | null>>
     setAddModal: React.Dispatch<React.SetStateAction<boolean>>
     bookmarkToUpdate: Bookmark | null;
+    pageWidth: number;
 };
 
-const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, bookmarkToUpdate } : Props) => {
+const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, bookmarkToUpdate, pageWidth } : Props) => {
     const [isModalHovered, setIsModalHovered] = useState<boolean>(false);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const [isRequestSuccess, setIsRequestSuccess] = useState<boolean>(true);
@@ -173,6 +174,12 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
             setLinkTags(bookmarkToUpdate.tags);
         }
     }, [bookmarkToUpdate]);
+
+    useEffect(()=>{
+        if(pageWidth <= 768){
+            setIsModalHovered(true);
+        }
+    },[pageWidth]);
 
     if(!isRequestSuccess) {
         return (

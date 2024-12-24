@@ -134,7 +134,7 @@ const BookmarkTable = ({ tags, setTags, bookmarks, setBookmarks, isSignedIn, set
                     {/* Tabs Component */}
                     <ul className="flex text-sm md:text-md font-medium text-center border-b border-[#F0BB78] overflow-scroll">
                         {tags.map((tag, index) => 
-                            <li key={index+tag+'#'} className="me-2">
+                            <li key={index+tag+'#'} className={`me-2 rounded-t-lg ${activeTag === tag ? 'bg-[#543A14]' : ''} hover:bg-[#543A14] hover:opacity-80`}>
                                 <button
                                     onClick={(e) => {
                                         e.preventDefault();

@@ -64,7 +64,8 @@ const Home = () => {
     const [bookmarks, setBookmarks] = useState<BookmarkMap | null>(null);
 
     const [bookmarkToUpdate, setBookmarkToUpdate] = useState<BookmarkType | null>(null);
-
+    const [pageWidth, setPageWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 0);
+    
     const HandleAddBookmark = () =>{
         if(!isSignedIn) return openSignIn();
         setBookmarkToUpdate(null);
@@ -192,6 +193,16 @@ const Home = () => {
         });
     }, [user?.id]);
 
+    useEffect(() => {
+        const handleResize = () => {
+            setPageWidth(window.innerWidth);
+        };
+        handleResize();
+    
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     if(!isLoaded || !isContentLoaded) {
         return (
             <div className="flex items-center justify-center w-full h-[100vh]">
@@ -202,7 +213,7 @@ const Home = () => {
 
     return (
         <div className="min-h-[100vh] flex flex-col items-center p-5 md:p-10">
-            {addModal ? <AddUpdateModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal} bookmarkToUpdate={bookmarkToUpdate}/> : <></>}
+            {addModal ? <AddUpdateModal tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} setAddModal={setAddModal} bookmarkToUpdate={bookmarkToUpdate} pageWidth={pageWidth}/> : <></>}
             <div className="flex flex-col items-center gap-2 mt-[7rem]">
                 <h1 className="text-[#F0BB78] font-semibold text-2xl md:text-3xl text-center">Centralized Bookmark Management</h1>
                 <p className="text-left w-[90%] text-[12px] md:text-[14px] md:w-auto">Organize and maintain your bookmarks efficiently with easy-to-use tools for saving, categorizing, and accessing your favorite websites.</p>
@@ -213,12 +224,12 @@ const Home = () => {
                 onMouseEnter={() => setIsBtnHovered(true)} 
                 onMouseLeave={() => setIsBtnHovered(false)} 
                 onClick={HandleAddBookmark}
-                className="flex items-center gap-2 rounded-lg p-4 md:p-5 hover:bg-[#F0BB78] transition-colors duration-200"
+                className="flex items-center gap-2 rounded-lg p-4 md:p-5 md:hover:bg-[#F0BB78] transition-colors duration-200"
                 >
-                    <svg viewBox="0 0 20 20" fill="currentColor" className={`w-7 ${isBtnHovered ? 'fill-[#543A14]' : 'fill-[#F0BB78]'} transition-colors duration-200`} >
+                    <svg viewBox="0 0 20 20" fill="currentColor" className={`w-7 fill-[#F0BB78] ${isBtnHovered ? 'md:fill-[#543A14]' : 'fill-[#F0BB78]'} transition-colors duration-200`} >
                         <path d="M11 9V5H9v4H5v2h4v4h2v-4h4V9h-4zm-1 11a10 10 0 110-20 10 10 0 010 20z" />
                     </svg>
-                    <p className={`text-[12px] md:text-lg ${isBtnHovered ? 'text-[#131010]' : 'text-[#F0BB78]'} transition-colors duration-200`}>Add Bookmark</p>
+                    <p className={`text-[12px] md:text-lg text-[#F0BB78] ${isBtnHovered ? 'md:text-[#131010]' : 'text-[#F0BB78]'} transition-colors duration-200`}>Add Bookmark</p>
                 </button>
 
                 <BookmarkTable tags={tags} setTags={setTags} bookmarks={bookmarks} setBookmarks={setBookmarks} isSignedIn={isSignedIn} setAddModal={setAddModal} setBookmarkToUpdate={setBookmarkToUpdate}/>
