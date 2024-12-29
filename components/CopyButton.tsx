@@ -27,7 +27,7 @@ const CopyButton: React.FC<CopyButtonProps> = ({
     return (
         <button
             onClick={HandleCopy}
-            className="text-[#F0BB78] hover:text-gray-200 bg-transparent hover:bg-[#2d2d2d] rounded-lg p-2 inline-flex items-center justify-center transition-colors duration-200"
+            className="text-[#F0BB78] bg-transparent rounded-lg p-2 inline-flex items-center justify-center transition-colors duration-200"
             data-copy-to-clipboard-target={targetId}
             data-copy-to-clipboard-content-type={contentType}
         >
