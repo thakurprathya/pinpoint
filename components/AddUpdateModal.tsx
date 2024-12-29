@@ -29,16 +29,26 @@ interface Props {
 
 const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, bookmarkToUpdate, pageWidth } : Props) => {
     const [isModalHovered, setIsModalHovered] = useState<boolean>(false);
-    const [isFocused, setIsFocused] = useState<boolean>(false);
     const [isRequestSuccess, setIsRequestSuccess] = useState<boolean>(true);
     const [linkTags, setLinkTags] = useState<string[]>([]);
     const [link, setLink] = useState<string>('');
     const [tag, setTag] = useState<string>('');
     const [title, setTitle] = useState<string>('');
+    const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+    const [inputFocused, setInputFocused] = useState<boolean>(false);
+    const [isSuggestionsVisible, setIsSuggestionsVisible] = useState<boolean>(false);
+    const [suggestionsHovered, setSuggestionsHovered] = useState<boolean>(false);
+
+    const filteredSuggestions = tags.filter(suggestion => 
+        tag === '' || suggestion.toLowerCase().includes(tag.toLowerCase())
+    );
+
+    useEffect(() => {
+        setSelectedIndex(-1);
+    }, [tag]);
 
     const setDefaultStates = () => {
         setIsModalHovered(false);
-        setIsFocused(false);
         setLink('');
         setTitle('');
         setTag('');
@@ -62,13 +72,14 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
             setLinkTags(prev => [...prev, newTag.trim().toLowerCase()]);
         }
         setTag('');
-        setIsFocused(false);
+        setSelectedIndex(-1);
+        setInputFocused(false);
+        setIsSuggestionsVisible(false);
+        document.getElementById('tag-input')?.blur(); 
     };
 
     const ShouldRemoveTag = (tag: string, updatedBookmarks: BookmarkMap) => {
-        // Check if tag exists in bookmarks
         if (!updatedBookmarks[tag]) return true;
-        // Check if tag has any bookmarks
         return updatedBookmarks[tag].length === 0;
     };
 
@@ -167,6 +178,53 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
         }
     }
 
+    const HandleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const suggestions = tags.filter(suggestion => 
+            tag === '' || suggestion.toLowerCase().includes(tag.toLowerCase())
+        );
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setIsSuggestionsVisible(true);
+            setInputFocused(false);
+            setSelectedIndex(prev => {
+                const nextIndex = prev < suggestions.length - 1 ? prev + 1 : prev;
+                ScrollToItem(nextIndex);
+                return nextIndex;
+            });
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setInputFocused(false);
+            setSelectedIndex(prev => {
+                const nextIndex = prev > 0 ? prev - 1 : 0;
+                ScrollToItem(nextIndex);
+                return nextIndex;
+            });
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+                HandleAddTag(suggestions[selectedIndex]);
+            } else if (tag.trim()) {
+                HandleAddTag(tag);
+            }
+        } else {
+            setInputFocused(true);
+        }
+    };
+
+    const ScrollToItem = (index: number) => {
+        const element = document.getElementById(`suggestion-${index}`);
+        if (element) {
+            element.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    };
+
+    const HandleSuggestionClick = (suggestion: string) => {
+        HandleAddTag(suggestion);
+        setSelectedIndex(-1);
+        setSuggestionsHovered(false);
+    };
+
     useEffect(() => {
         if (bookmarkToUpdate) {
             setLink(bookmarkToUpdate.link);
@@ -219,35 +277,52 @@ const AddUpdateModal = ({ tags, setTags, bookmarks, setBookmarks, setAddModal, b
                 />
                 <div className="relative">
                     <input
+                        id="tag-input"
                         type="text"
-                        className="bg-[#543A14] outline-none rounded-md p-2 px-4 text-sm md:text-md w-[300px]"
+                        className={`bg-[#543A14] outline-none rounded-md p-2 px-4 text-sm md:text-md w-[300px] ${
+                            inputFocused ? 'cursor-text' : 'cursor-default'
+                        }`}
                         placeholder="Add Tags"
                         value={tag}
-                        onChange={(e) => setTag(e.target.value)}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={(e) => setTimeout(() => setIsFocused(false), 200)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && tag.trim()) {
-                                e.preventDefault();
-                                (e.target as HTMLInputElement).blur();
-                                HandleAddTag(tag);
-                            }
+                        onChange={(e) => {
+                            setTag(e.target.value);
+                            setSelectedIndex(-1);
+                            setIsSuggestionsVisible(true);
                         }}
+                        onFocus={() => {
+                            setInputFocused(true);
+                            setIsSuggestionsVisible(true);
+                        }}
+                        onBlur={() => {
+                            setTimeout(() => {
+                                if (!suggestionsHovered) {
+                                    setInputFocused(false);
+                                    setIsSuggestionsVisible(false);
+                                }
+                            }, 100);
+                        }}
+                        onKeyDown={HandleKeyDown}
                     />
-                    {isFocused && tags.length > 0 && (
-                        <div className={`absolute z-30 w-full bg-[#543A14] mt-1 rounded-md max-h-[10rem] overflow-y-auto ${tags.length > 0 ? 'border-[#F0BB78] border' : ''}`}>
-                            {tags
-                                .filter(suggestion => tag === '' || suggestion.toLowerCase().includes(tag.toLowerCase()))
-                                .map((suggestion, index) => (
-                                    <div 
-                                        key={index+suggestion+'.'}
-                                        className="p-2 hover:bg-[#644824] cursor-pointer"
-                                        onClick={() => HandleAddTag(suggestion)}
-                                    >
-                                        {capitalize(suggestion)}
-                                    </div>
-                                ))
-                            }
+                    {isSuggestionsVisible && tags.length > 0 && (
+                        <div 
+                            className="absolute z-30 w-full bg-[#543A14] mt-1 rounded-md max-h-[10rem] overflow-y-auto border-[#F0BB78] border"
+                            onMouseEnter={() => setSuggestionsHovered(true)}
+                            onMouseLeave={() => setSuggestionsHovered(false)}
+                        >
+                            {filteredSuggestions.map((suggestion, index) => (
+                                <div 
+                                    id={`suggestion-${index}`}
+                                    key={index+suggestion+'.'}
+                                    className={`p-2 cursor-pointer transition-colors hover:bg-[#F0BB78] hover:text-[#2D1810] ${
+                                        index === selectedIndex 
+                                            ? 'bg-[#F0BB78] text-[#2D1810]' 
+                                            : 'bg-[#543A14] text-[#F0BB78]'
+                                    }`}
+                                    onClick={() => HandleSuggestionClick(suggestion)}
+                                >
+                                    {capitalize(suggestion)}
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
