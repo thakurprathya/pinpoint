@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getEncryptedItem, setEncryptedItem } from "../lib/encryption";
+import CopyButton from "./CopyButton";
 
 interface BookmarkType {
     _id: string;
@@ -156,8 +157,9 @@ const BookmarkTable = ({ tags, setTags, bookmarks, setBookmarks, isSignedIn, set
                                 <tr>
                                     <th scope="col" className="p-3 text-center w-[5%]"></th>
                                     <th scope="col" className="p-3 text-left w-[25%]">Link</th>
-                                    <th scope="col" className="p-3 text-center w-[25%]">Title</th>
-                                    <th scope="col" className="p-3 text-center w-[25%]">Tags</th>
+                                    <th scope="col" className="p-3 text-left w-[5%]"></th>
+                                    <th scope="col" className="p-3 text-center w-[22.5%]">Title</th>
+                                    <th scope="col" className="p-3 text-center w-[22.5%]">Tags</th>
                                     <th scope="col" className="p-3 text-center w-[20%]">Actions</th>
                                 </tr>
                             </thead>
@@ -165,9 +167,12 @@ const BookmarkTable = ({ tags, setTags, bookmarks, setBookmarks, isSignedIn, set
                                 {bookmarks && bookmarks[activeTag as keyof typeof bookmarks]?.length > 0 && bookmarks[activeTag as keyof typeof bookmarks]?.map((bookmark, index) =>
                                     <tr key={bookmark.link+index} className={`w-full ${(index+1 === bookmarks[activeTag as keyof typeof bookmarks]?.length) ? '' : 'border-b border-[#F0BB78] border-opacity-30'}`}>
                                         <td className="p-3 text-center w-[5%]">{index + 1}</td>
-                                        <td className="p-3 w-[25%] break-all"><a href={bookmark.link} className="text-left underline hover:text-[#F0BB78] cursor-pointer break-all" target="_blank">{bookmark.link}</a></td>
-                                        <td className="p-3 text-center w-[25%] break-words">{bookmark.title}</td>
-                                        <td className="p-3 w-[25%]">
+                                        <td className="p-3 w-[25%] break-all"><a id={bookmark.link} href={bookmark.link} className="text-left underline hover:text-[#F0BB78] cursor-pointer break-all" target="_blank">{bookmark.link}</a></td>
+                                        <td className="p-3 text-center w-[5%]">
+                                            <CopyButton targetId={bookmark.link}/>
+                                        </td>
+                                        <td className="p-3 text-center w-[22.5%] break-words">{bookmark.title}</td>
+                                        <td className="p-3 w-[22.5%]">
                                             <div className="flex flex-wrap gap-1 justify-center">
                                                 {bookmark.tags.map((tag, i) => (
                                                     <div key={i+tag+'('} className="bg-[#543A14] px-2 py-1 rounded-md text-[#F0BB78]">
