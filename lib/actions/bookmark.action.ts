@@ -50,9 +50,13 @@ export async function createBookmark(bookmarkData: {
             return tag._id;
         }));
 
-        const { favicon, description } = await extractFaviconAndDescription(bookmarkData.link);
-        bookmarkData.favicon = favicon;
-        bookmarkData.description = description;
+        // const { favicon, description } = await extractFaviconAndDescription(bookmarkData.link);
+        // bookmarkData.favicon = favicon;
+        // bookmarkData.description = description;
+
+        // passing temp meta information
+        bookmarkData.favicon = '';
+        bookmarkData.description = "sample description";
 
         // Processing bookmark
         const newBookmark = await Bookmark.create({
@@ -123,9 +127,13 @@ export async function updateBookmark(
             }
         }));
 
-        const { favicon, description } = await extractFaviconAndDescription(bookmarkData.link);
-        bookmarkData.favicon = favicon;
-        bookmarkData.description = description;
+        // const { favicon, description } = await extractFaviconAndDescription(bookmarkData.link);
+        // bookmarkData.favicon = favicon;
+        // bookmarkData.description = description;
+
+        // passing temp meta information
+        bookmarkData.favicon = '';
+        bookmarkData.description = "sample description";
 
         const updatedBookmark = await Bookmark.findByIdAndUpdate(
             bookmarkId,
